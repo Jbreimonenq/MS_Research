@@ -13,6 +13,11 @@ class KF:
         self.control = control
         self.Q_val = Q_val
         self.R_val = R_val
+        mean = [0, 0]
+        cov = [[1, 0], [0, 100]]
+        
+        x, U = np.random.multivariate_normal(mean, cov)
+
         
     def predict(self,mu_1,sigma_1, con):
         Q = self.Q_val * np.eye(len(self.D))
