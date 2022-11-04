@@ -5,6 +5,8 @@ Created on Fri Oct 21 10:23:02 2022
 @author: reimoj
 """
 import numpy as np
+from EKF import EKF
+import matplotlib.pyplot as plt
 
 class pendulumn:
     def __init__ (self, m, l, dt):
@@ -26,3 +28,6 @@ class pendulumn:
         f[1,1] = 1
         
         return f
+
+
+

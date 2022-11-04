@@ -48,15 +48,15 @@ class KF:
    
 
 dt = 0.01
-sim_t = 100
-theta0 = 100*(np.pi/180)
+sim_t = 10
+theta0 = 5*(np.pi/180)
 A = np.array([[0, 1],[-9.81*theta0, 0]])
 F = np.eye(len(A))+ np.dot(dt, A)
 B = np.array([.5*dt**2, dt]).reshape(2, 1)
 H = np.array([[1,0],[0,1]])
 Q = np.dot(np.array([[(dt**4)/4, (dt**3)/2], [(dt**3)/2, (dt**2)]]), 0.1**2)
 R = np.eye(2)
-P = np.array([[1,0],[0,1]])
+P = 1e-6*np.array([[1,0],[0,1]])
 x0 = np.array([[theta0],[0]])
 
 mean = np.array([0, 0])
@@ -87,7 +87,7 @@ mes_clean = np.array(mes_clean)
 
 '''Plots for each state of the Measurement, Prediction, and True value.'''
 for i in range(len(F)):
-    plt.plot(np.dot(dt,range(len(measurements))), measurements[:,i], label = 'Measurements')
+    #plt.plot(np.dot(dt,range(len(measurements))), measurements[:,i], label = 'Measurements')
     plt.plot(np.dot(dt,range(len(predictions))), predictions[:,i], 'r--', label = 'Kalman Filter Prediction')
     plt.plot(np.dot(dt,range(len(mes_clean))), mes_clean[:,i], 'g', label = 'True Value')
     plt.title(f'State %d'% (i+1))
