@@ -42,25 +42,30 @@ class EKF:
         #print("x", self.x)
         self.x = self.x.reshape(self.n, 1) + np.dot(K, y) #Updated state estimate
         IKH = (np.eye(self.n) - np.dot(K, self.H))
-        self.P = np.dot(IKH,self.P) #np.dot(IKH,np.dot(self.P,IKH.T)) + np.dot(K,np.dot(R,K.T)) # Updated estimate covariance
+        self.P = self.P - np.dot(K,np.dot(S,K.T))#np.dot(IKH,self.P) #np.dot(IKH,np.dot(self.P,IKH.T)) + np.dot(K,np.dot(R,K.T)) # Updated estimate covariance
         #print(np.dot(K,y))
         #print(y.shape)
+        
+        
 
     def run_EKF(self, kf, mean, sim_t, dt, s, states):
-        predictions = np.zeros((int(np.round((sim_t+dt)/dt)),states))
-        measurements = np.zeros((int(np.round((sim_t+dt)/dt)),self.R.shape[0]))
+        predictions = []
+        measurements = []
+        P_predict = []
         GT_state = []
         
         for i in range(int(np.round((sim_t+dt)/dt))):
-            measurements[i] = self.H @ s + np.random.multivariate_normal(mean, self.R)
-            prediction = kf.predict()
+            measure = self.H @ s + np.random.multivariate_normal(mean, self.R)
+            measurements.append(measure)
+            x_predict = kf.predict()
+            predictions.append(x_predict)
             GT_state.append(s)
-            kf.update(measurements[i])
+            kf.update(measure)
             #print(prediction[0])
-            predictions[i] = prediction.reshape(states)
             s = self.env.nextstate(s)
             
         GT_state = np.array(GT_state)
+        #print(predictions)
         
         return  predictions, measurements, GT_state   
         
