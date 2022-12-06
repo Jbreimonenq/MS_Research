@@ -8,7 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt 
 from InexactLineSearch_IEKS import GN_IEKS_ILS
 from lorentz import lorentz
-from EKF_Plotter import plotIEKS as plot
+from EKF_Plotter import subplotIEKS as plot
+#from EKF_Plotter import plotIEKS as plot
 
 #Start of Main Code -----------------------------------------------------------
 #Defining Variables
@@ -57,7 +58,7 @@ for i in range(T):
     x_current.append(x)
 
 #x_current = GT_state
-xs = kf.solve(x_current)
+xs, cost = kf.solve(x_current)
 #xs = x_current
 
 #xp = np.stack(xp, axis=0)
@@ -65,6 +66,30 @@ xs = kf.solve(x_current)
 #a = np.stack(a, axis=0)
 #print(xs)
 
-plot(dt = dt, m_value = y_list, p_value = xs, a_value = GT_state, state = 0)
-plot(dt = dt, p_value = xs, a_value = GT_state, state = 1) 
-plot(dt = dt, p_value = xs, a_value = GT_state, state = 2)
+
+
+#print('Cost After = ', cost[1][:,0])
+
+fig, axs = plt.subplots(3)
+print('Plotting...')
+plot(axs[0], dt = dt, m_value = y_list, p_value = xs, a_value = GT_state, state = 0)
+plot(axs[1], dt = dt, p_value = xs, a_value = GT_state, state = 1) 
+plot(axs[2], dt = dt, p_value = xs, a_value = GT_state, state = 2)
+axs[0].title.set_text('State 1 of Lorentz System')
+axs[1].title.set_text('State 2 of Lorentz System')
+axs[2].title.set_text('State 3 of Lorentz System')
+
+
+
+plt.figure(2)
+x = np.arange(1,len(cost[1][:,0])+1)
+y = cost[1][:,0]
+plt.plot(x, y, marker='o')
+plt.title('Cost vs Iterations')
+plt.grid()
+plt.text(x[0], y[0], y[0][0], size=12)
+plt.text(x[-1], y[-1], y[-1][0], size=12)
+print('Done.')
+plt.show()
+
+#print('Cost After = ', cost[1][:,0])

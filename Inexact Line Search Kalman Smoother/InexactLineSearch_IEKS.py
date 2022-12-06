@@ -120,30 +120,34 @@ class GN_IEKS_ILS:
 
 
     def solve(self, x_current):
+        print('Running...')
+        costgrapha = []
+        costgraphb = []
         c1 = 1e-4
         tau = 1 / 2
         x_i = x_current
         grad_norm = 10
         cost1 = self.cost(x_i)
-        print('first cost = ', cost1)
-        while grad_norm >= 1e-6:
+        #print('first cost = ', cost1)
+        k = 0
+        while grad_norm >= 1e-8:
             
             x_predict, x_i1 = self.step(x_i)
             del_x = np.array(x_i1) - np.array(x_i)
-            print('delx shape = ',del_x.shape)
+            #print('delx shape = ',del_x.shape)
             alpha = 1
             d = self.directional_derivative(x_i, del_x)
             grad_norm = np.linalg.norm(d)
-            print('grad_norm =', grad_norm)
+            #print('grad_norm =', grad_norm)
             
             xk = x_i + alpha*del_x 
             cost1 = self.cost(xk)
             cost2 = self.cost(x_i)
-            
-            
+         
+            costgrapha.append(cost1)
             count = 0 
             while cost1 >= cost2 and count < 20:
-                print('cost candidate = ', cost1)
+                #print('cost candidate = ', cost1)
                 alpha *= tau
                 xk = x_i + alpha*del_x 
                 cost1 = self.cost(xk)
@@ -152,12 +156,11 @@ class GN_IEKS_ILS:
             if cost1 > cost2:
                 break
             x_i = x_i + alpha*del_x
-            print('Accepted Cost = ', cost1)
-        if grad_norm >= 1e-6:
+            #print('Accepted Cost = ', cost1)
+            costgraphb.append(cost1)
+        if grad_norm >= 1e-8:
             print('DID NOT CONVERGE')
-            
-        return x_i
-
+        totalcost = [costgrapha,costgraphb]
+        print('Done.')            
+        return x_i, np.array(totalcost)
         
-
-
