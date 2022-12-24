@@ -1,0 +1,81 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Oct 21 10:23:02 2022
+
+@author: reimoj
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+class pendulumn:
+    def __init__ (self, m, l, H, umax, theta_des, dt):
+        self.dt = dt
+        self.g = 9.81
+        self.l = l
+        self.m = 1
+        self.H = H
+        self.umax = umax
+        self.theta_des = theta_des
+        self.dim_x = 2
+    
+    def clamp(self, n, minn, maxn):
+        if n > maxn:
+            n = maxn
+        elif n < minn:
+            n = minn
+        else:
+            n = n
+        return n
+    def swing(self, x):
+        if 0 <= x[0] and x[0] <= 2*np.pi:
+            x[0] = x[0]
+        elif x[0] < 0:
+            x[0] = x[0] + (2*np.pi)
+        else:
+            x[0] = x[0] - (2*np.pi) 
+        return x
+    
+    def control(self, x):
+        omega_des = 0
+        Kp = 10
+        Ki = 2
+        
+        u = -Kp*(x[0]-self.theta_des) - Ki*(x[1]-omega_des)
+        u = self.clamp(u[0], -self.umax, self.umax)
+        U = np.array([[0],[u]])
+        return u
+    
+    def nextstate(self, x, u=0):
+        #print(u)
+        #u = np.array([0,u]).reshape((2, 1))
+        x_next = x[0,0] + self.dt*(x[1,0])
+        v_next = (x[1,0] + self.dt*(u-self.g*np.sin(x[0,0]))) + u
+        v_next = self.clamp(v_next,-6,6)
+        X_next = np.array([[x_next],[v_next]])
+        x_next = self.swing(X_next)
+        print(X_next)
+        return X_next
+        
+    def Jacobian(self, x):
+        x = self.swing(x)
+        f = np.zeros((2,2))
+        f[0,0] = 1
+        f[0,1] = self.dt
+        f[1,0] = -self.g*self.dt*np.cos(x[0])
+        f[1,1] = 1
+        
+        return f
+        
+    def measurement(self, x):
+        #print(x)
+        x = self.swing(x)
+        z = self.H @ x
+        return z
+    
+    def JacobianMeasure(self, x):
+        x = self.swing(x)
+        H_Jacobian = np.array([np.cos(x[0,0]),0]).reshape(1, 2)
+        
+        return self.H
+
+
