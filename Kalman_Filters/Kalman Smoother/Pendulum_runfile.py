@@ -20,7 +20,7 @@ mean = np.array([0])
 theta0 = 0*(np.pi/180)
 H = np.array([[1,0]])
 Q = 1e-2 * np.eye(2) 
-R = np.eye(1)
+R = 1e0 * np.eye(1)
 P = 1e-12 * np.eye(2)
 x0 = np.array([theta0,0]).reshape((2, 1))
 states = 2
@@ -36,15 +36,19 @@ env = pendulumn(m,l,H,umax,xdes,dt)
 T = int(np.round((sim_t+dt)/dt))
 s = x0.copy()
 y_list = []
+u_list = []
 GT_state = []
 for i in range(T):
     u = env.control(s)
+    u_list.append(u)
     y = env.measurement(s) + np.random.multivariate_normal(mean, R)
     y_list.append(y)
     GT_state.append(s)
     s = env.nextstate(s,u)
+    #print('u = ',u)
+    #print('s = ', s)
 
-kf = REG_IEKS(y_list, env, x0, P, Q, R)
+kf = REG_IEKS(u_list, y_list, env, x0, P, Q, R)
 x_current = []
 
 for i in range(T):

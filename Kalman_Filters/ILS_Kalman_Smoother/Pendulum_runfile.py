@@ -36,15 +36,17 @@ env = pendulumn(m,l,H,umax,xdes,dt)
 T = int(np.round((sim_t+dt)/dt))
 s = x0.copy()
 y_list = []
+u_list = []
 GT_state = []
 for i in range(T):
     u = env.control(s)
+    u_list.append(u)
     y = env.measurement(s) + np.random.multivariate_normal(mean, R)
     y_list.append(y)
     GT_state.append(s)
     s = env.nextstate(s,u)
 
-kf = GN_IEKS_ILS(y_list, env, x0, P, Q, R)
+kf = GN_IEKS_ILS(u_list, y_list, env, x0, P, Q, R)
 x_current = []
 
 for i in range(T):
@@ -53,42 +55,56 @@ for i in range(T):
     x_current.append(x)
 
 #x_current = GT_state
-xs, cost = kf.solve(x_current)
-#xs = x_current
-
-#xp = np.stack(xp, axis=0)
-#xs = np.stack(xs, axis=0)
-#a = np.stack(a, axis=0)
-#print(xs)
-
-
-
-#print('Cost After = ', cost[1][:,0])
+xp, xs = kf.step(x_current)
+fig, axs = plt.subplots(2)
+print('Plotting...')
+plot(axs[0], dt = dt, m_value = y_list, p_value = xp, a_value = GT_state, state = 0)
+plot(axs[1], dt = dt, p_value = xp, a_value = GT_state, state = 1) 
+axs[0].title.set_text('KP Time Evolution of \u03F4')
+#axs[0].axhline(y = np.pi, color = 'k', linestyle = ':')
+axs[0].axes.xaxis.set_ticklabels([])
+axs[1].title.set_text('KP Time Evolution of \u03C9')
 
 fig, axs = plt.subplots(2)
 print('Plotting...')
 plot(axs[0], dt = dt, m_value = y_list, p_value = xs, a_value = GT_state, state = 0)
 plot(axs[1], dt = dt, p_value = xs, a_value = GT_state, state = 1) 
-axs[0].title.set_text('Time Evolution of \u03F4')
+axs[0].title.set_text('KS Time Evolution of \u03F4')
 #axs[0].axhline(y = np.pi, color = 'k', linestyle = ':')
 axs[0].axes.xaxis.set_ticklabels([])
-axs[1].title.set_text('Time Evolution of \u03C9')
+axs[1].title.set_text('KS Time Evolution of \u03C9')
 
-print(repr(cost))
 
-plt.figure(2)
+
+x_ils, cost = kf.solve(x_current)
+
+fig, axs = plt.subplots(2)
+print('Plotting...')
+plot(axs[0], dt = dt, m_value = y_list, p_value = x_ils, a_value = GT_state, state = 0)
+plot(axs[1], dt = dt, p_value = x_ils, a_value = GT_state, state = 1) 
+axs[0].title.set_text('ILS Time Evolution of \u03F4')
+#axs[0].axhline(y = np.pi, color = 'k', linestyle = ':')
+axs[0].axes.xaxis.set_ticklabels([])
+axs[1].title.set_text('ILS Time Evolution of \u03C9')
+
+
+#print(repr(cost))
+
+plt.figure(4)
 x = range(len(cost))
 y = cost
 plt.plot(x, y, marker='o')
 plt.title('Cost vs Iterations')
 plt.grid()
+
 for i, v in enumerate(cost):
     if i <= 1:
-        plt.text(i, v+40000, "%d" %v, ha="left")
+        plt.text(i, v, "%d" %v, ha="left")
     elif i == len(cost)-1:
-        plt.text(i, v+75000, "%d" %v, ha="center")
+        plt.text(i, v, "%d" %v, ha="center")
 
 print('Done.')
+
 plt.show()
 
 #print('Cost After = ', cost[1][:,0])

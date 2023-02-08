@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 #Classes and Functions --------------------------------------------------------
 class REG_IEKS:
-    def __init__(self, y_list, env, x0_hat, P, Q, R):
+    def __init__(self,u_list, y_list, env, x0_hat, P, Q, R):
        
         self.n = env.dim_x
         self.m = R.shape[0]
@@ -12,13 +12,14 @@ class REG_IEKS:
         self.x0_hat = x0_hat
         self.env = env
         self.y_list = y_list
+        self.u_list = u_list
         
-    def predict(self, x_c, x_f, P_f):
+    def predict(self, u, x_c, x_f, P_f):
         F = self.env.Jacobian(x_c)
         #print(x_c.shape)
         #print(x_f.shape)
         #print(self.env.nextstate(x_c).shape)
-        u = self.env.control(x_c)
+        #u = self.env.control(x_c)
         #print(u)
         x_p = self.env.nextstate(x_c,u) + F @ (x_f - x_c)#print(self.x.shape[1])
         P_p = np.dot(np.dot(F, P_f), F.T) + self.Q #Predicted estimate covariance
@@ -62,14 +63,15 @@ class REG_IEKS:
                 P = self.P
             else:
                 
-                x, P, Fk = self.predict(x_current[i-1], x_update[i-1], P_update[i-1])
+                x, P, Fk = self.predict(self.u_list[i-1], x_current[i-1], x_update[i-1], P_update[i-1])
                 
                 F.append(Fk)
-            x = self.env.swing(x)
-            x[1] = self.env.clamp(x[1],-6,6)
+            #x = self.env.swing(x)
+           # x[1] = self.env.clamp(x[1],-6,6)
             x_predict.append(x.reshape((self.n,1)))
             P_predict.append(P)
             measure = self.y_list[i]
+            #print('x_current = ',x_current[i])
             x, P = self.update(measure, x_current[i], x_predict[i], P_predict[i])
             x_update.append(x)
             P_update.append(P)
